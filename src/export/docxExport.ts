@@ -17,6 +17,7 @@ export async function exportToDocx(doc: LegislationDoc): Promise<Blob> {
   const table = new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     layout: TableLayoutType.FIXED,
+    visuallyRightToLeft: true,
     rows,
     borders: {
       top:     { style: BorderStyle.SINGLE, size: 1 },
@@ -124,10 +125,10 @@ function buildContentRow(block: Block, number: string): TableRow {
         width: { size: 22, type: WidthType.PERCENTAGE },
         children: [contentPara(block.type === 'section' ? (block.marginalHeading ?? '') : '', { bold: true })],
       }),
-      // Column 2: auto-number
+      // Column 2: auto-number — bold like the marginal heading, per Reshumot convention
       new TableCell({
         width: { size: 8, type: WidthType.PERCENTAGE },
-        children: [contentPara(number)],
+        children: [contentPara(number, { bold: true })],
       }),
       // Column 3: content
       new TableCell({

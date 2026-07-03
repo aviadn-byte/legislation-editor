@@ -46,6 +46,7 @@ function App() {
           onChange={(id, changes) => dispatch({ type: 'UPDATE_BLOCK', id, changes })}
           onDelete={(id) => dispatch({ type: 'DELETE_BLOCK', id })}
           onMove={(id, direction) => dispatch({ type: 'MOVE_BLOCK', id, direction })}
+          onInsertAfter={(afterId, blockType) => dispatch({ type: 'ADD_BLOCK', blockType, afterId })}
         />
       </div>
     </div>

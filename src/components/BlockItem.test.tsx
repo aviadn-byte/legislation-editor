@@ -74,4 +74,27 @@ describe('BlockItem', () => {
     expect(screen.getByText('↑')).toBeDisabled()
     expect(screen.getByText('↓')).toBeDisabled()
   })
+
+  it('calls onDelete only after the user confirms', async () => {
+    const user = userEvent.setup()
+    const block: Block = { id: '1', type: 'chapter', content: '' }
+    const onDelete = vi.fn()
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    render(<BlockItem {...baseProps(block, { onDelete })} />)
+    await user.click(screen.getByText('מחק'))
+    expect(confirmSpy).toHaveBeenCalled()
+    expect(onDelete).not.toHaveBeenCalled()
+
+    confirmSpy.mockReturnValue(true)
+    await user.click(screen.getByText('מחק'))
+    expect(onDelete).toHaveBeenCalledTimes(1)
+    confirmSpy.mockRestore()
+  })
+
+  it('gives the move buttons accessible names', () => {
+    const block: Block = { id: '1', type: 'chapter', content: '' }
+    render(<BlockItem {...baseProps(block)} />)
+    expect(screen.getByLabelText('הזז למעלה')).toBeInTheDocument()
+    expect(screen.getByLabelText('הזז למטה')).toBeInTheDocument()
+  })
 })

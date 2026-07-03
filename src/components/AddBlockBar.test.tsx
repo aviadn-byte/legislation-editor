@@ -44,4 +44,29 @@ describe('AddBlockBar', () => {
     await user.click(screen.getByText('+ תחילה'))
     expect(onAdd).toHaveBeenCalledWith('commencement')
   })
+
+  describe('compact mode', () => {
+    it('renders collapsed by default, showing only a small add-here trigger', () => {
+      render(<AddBlockBar compact lastBlock={undefined} onAdd={vi.fn()} />)
+      expect(screen.getByText('+ הוסף כאן')).toBeInTheDocument()
+      expect(screen.queryByText('+ פרק')).not.toBeInTheDocument()
+    })
+
+    it('expands to show all block-type buttons on click', async () => {
+      const user = userEvent.setup()
+      render(<AddBlockBar compact lastBlock={undefined} onAdd={vi.fn()} />)
+      await user.click(screen.getByText('+ הוסף כאן'))
+      expect(screen.getByText('+ פרק')).toBeInTheDocument()
+    })
+
+    it('calls onAdd and collapses again after choosing a block type', async () => {
+      const user = userEvent.setup()
+      const onAdd = vi.fn()
+      render(<AddBlockBar compact lastBlock={undefined} onAdd={onAdd} />)
+      await user.click(screen.getByText('+ הוסף כאן'))
+      await user.click(screen.getByText('+ סעיף'))
+      expect(onAdd).toHaveBeenCalledWith('section')
+      expect(screen.getByText('+ הוסף כאן')).toBeInTheDocument()
+    })
+  })
 })

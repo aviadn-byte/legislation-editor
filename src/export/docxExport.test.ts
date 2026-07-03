@@ -68,4 +68,18 @@ describe('exportToDocx', () => {
     const xml = await getDocumentXml(blob)
     expect(xml).toContain('w:ascii="David"')
   })
+
+  it('marks the table itself as visually RTL so columns render right-to-left in Word', async () => {
+    const blob = await exportToDocx(makeDoc([{ id: '1', type: 'section', content: 'x', marginalHeading: 'y' }]))
+    const xml = await getDocumentXml(blob)
+    expect(xml).toContain('w:bidiVisual')
+  })
+
+  it('bolds the number column like the marginal heading', async () => {
+    const blob = await exportToDocx(makeDoc([{ id: '1', type: 'section', content: 'x', marginalHeading: 'y' }]))
+    const xml = await getDocumentXml(blob)
+    const boldCount = (xml.match(/<w:b\/>/g) ?? []).length
+    // marginal heading + number, both bold (chapter/definition/etc not present in this doc)
+    expect(boldCount).toBeGreaterThanOrEqual(2)
+  })
 })

@@ -50,13 +50,19 @@ export function BlockItem({
         </span>
         <div className="flex items-center gap-2">
           {number && <span className="font-mono text-sm text-gray-500">{number}</span>}
-          <button type="button" onClick={onMoveUp} disabled={!canMoveUp} className="disabled:opacity-30">
+          <button type="button" onClick={onMoveUp} disabled={!canMoveUp} aria-label="הזז למעלה" className="disabled:opacity-30">
             ↑
           </button>
-          <button type="button" onClick={onMoveDown} disabled={!canMoveDown} className="disabled:opacity-30">
+          <button type="button" onClick={onMoveDown} disabled={!canMoveDown} aria-label="הזז למטה" className="disabled:opacity-30">
             ↓
           </button>
-          <button type="button" onClick={onDelete} className="text-red-600">
+          <button
+            type="button"
+            onClick={() => {
+              if (window.confirm(`למחוק את הבלוק "${BLOCK_LABELS[block.type]}"? לא ניתן לשחזר פעולה זו.`)) onDelete()
+            }}
+            className="text-red-600"
+          >
             מחק
           </button>
         </div>

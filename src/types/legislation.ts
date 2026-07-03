@@ -30,3 +30,29 @@ export interface LegislationDoc {
   createdAt: string
   updatedAt: string
 }
+
+const DOC_TYPES: DocType[] = ['new_law', 'amending_law', 'regulation', 'order', 'temporary_provision']
+const BLOCK_TYPES: BlockType[] = ['chapter', 'section', 'subsection', 'paragraph', 'definition', 'commencement']
+
+function isBlock(value: unknown): value is Block {
+  if (typeof value !== 'object' || value === null) return false
+  const b = value as Record<string, unknown>
+  return typeof b.id === 'string' && typeof b.content === 'string' && BLOCK_TYPES.includes(b.type as BlockType)
+}
+
+// Runtime shape check for a document loaded from an untrusted .json file —
+// a hand-edited or corrupted file must not crash the app on load.
+export function isLegislationDoc(value: unknown): value is LegislationDoc {
+  if (typeof value !== 'object' || value === null) return false
+  const d = value as Record<string, unknown>
+  return (
+    typeof d.id === 'string' &&
+    DOC_TYPES.includes(d.docType as DocType) &&
+    typeof d.title === 'string' &&
+    typeof d.year === 'string' &&
+    typeof d.createdAt === 'string' &&
+    typeof d.updatedAt === 'string' &&
+    Array.isArray(d.blocks) &&
+    d.blocks.every(isBlock)
+  )
+}

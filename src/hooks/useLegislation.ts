@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer } from 'react'
+import { useEffect, useMemo, useReducer, useRef } from 'react'
 import type { Block, BlockType, DocType, LegislationDoc } from '../types/legislation'
 import { computeNumbers } from '../utils/numbering'
 import { validate } from '../utils/validation'
@@ -122,6 +122,20 @@ export function useLegislation() {
     }, 30000)
     return () => clearInterval(interval)
   }, [doc])
+
+  // Autosave only ever writes — there is no restore-on-load in Phase 1, so a
+  // refresh/close silently discards any unsaved work. Warn before that happens.
+  const docRef = useRef(doc)
+  docRef.current = doc
+  useEffect(() => {
+    function handleBeforeUnload(e: BeforeUnloadEvent) {
+      if (docRef.current.blocks.length > 0) {
+        e.preventDefault()
+      }
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [])
 
   return { doc, numbers, errors, dispatch }
 }

@@ -1,5 +1,5 @@
 import type { ChangeEvent } from 'react'
-import type { DocType, LegislationDoc } from '../types/legislation'
+import { isLegislationDoc, type DocType, type LegislationDoc } from '../types/legislation'
 
 const DOC_TYPE_LABELS: Record<DocType, string> = {
   new_law: 'חוק חדש',
@@ -33,10 +33,18 @@ export function DocHeader({ doc, exportDisabled, onMetaChange, onNewDoc, onExpor
   async function handleLoad(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    const text = await file.text()
-    const loaded = JSON.parse(text) as LegislationDoc
-    onLoadDoc(loaded)
     e.target.value = ''
+    try {
+      const text = await file.text()
+      const parsed = JSON.parse(text)
+      if (!isLegislationDoc(parsed)) {
+        alert('הקובץ שנבחר אינו קובץ מסמך חקיקה תקין (.legislation.json)')
+        return
+      }
+      onLoadDoc(parsed)
+    } catch {
+      alert('לא ניתן לקרוא את הקובץ — ודא שזהו קובץ .legislation.json תקין')
+    }
   }
 
   return (
@@ -68,6 +76,12 @@ export function DocHeader({ doc, exportDisabled, onMetaChange, onNewDoc, onExpor
           ))}
         </select>
       </div>
+
+      {doc.docType === 'amending_law' && (
+        <p className="rounded bg-yellow-50 px-3 py-1.5 text-sm text-yellow-800">
+          ⚠ תמיכה חלקית בשלב זה: "חוק מתקן" מתנהג כרגע כמו "חוק חדש" — אין עדיין תמיכה בהפניה לחוק המתוקן או במספור תיקון פנימי (למשל "1א").
+        </p>
+      )}
 
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-sm text-gray-500">מסמך חדש:</span>
