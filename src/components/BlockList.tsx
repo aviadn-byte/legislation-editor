@@ -1,7 +1,6 @@
 import type { Block, BlockType } from '../types/legislation'
 import type { ValidationError } from '../utils/validation'
 import { BlockItem } from './BlockItem'
-import { AddBlockBar } from './AddBlockBar'
 
 export interface BlockListProps {
   blocks: Block[]
@@ -15,22 +14,21 @@ export interface BlockListProps {
 
 export function BlockList({ blocks, numbers, errors, onChange, onDelete, onMove, onInsertAfter }: BlockListProps) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-2">
       {blocks.map((block, index) => (
-        <div key={block.id} className="flex flex-col gap-1">
-          <BlockItem
-            block={block}
-            number={numbers.get(block.id)}
-            errors={errors.filter((e) => e.blockId === block.id)}
-            canMoveUp={index > 0}
-            canMoveDown={index < blocks.length - 1}
-            onChange={(changes) => onChange(block.id, changes)}
-            onDelete={() => onDelete(block.id)}
-            onMoveUp={() => onMove(block.id, 'up')}
-            onMoveDown={() => onMove(block.id, 'down')}
-          />
-          <AddBlockBar compact lastBlock={block} onAdd={(blockType) => onInsertAfter(block.id, blockType)} />
-        </div>
+        <BlockItem
+          key={block.id}
+          block={block}
+          number={numbers.get(block.id)}
+          errors={errors.filter((e) => e.blockId === block.id)}
+          canMoveUp={index > 0}
+          canMoveDown={index < blocks.length - 1}
+          onChange={(changes) => onChange(block.id, changes)}
+          onDelete={() => onDelete(block.id)}
+          onMoveUp={() => onMove(block.id, 'up')}
+          onMoveDown={() => onMove(block.id, 'down')}
+          onInsertAfter={(blockType) => onInsertAfter(block.id, blockType)}
+        />
       ))}
     </div>
   )

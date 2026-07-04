@@ -1,7 +1,22 @@
 import { useEffect, useMemo, useReducer, useRef } from 'react'
-import type { Block, BlockType, DocType, LegislationDoc } from '../types/legislation'
+import { isLegislationDoc, type Block, type BlockType, type DocType, type LegislationDoc } from '../types/legislation'
 import { computeNumbers } from '../utils/numbering'
 import { validate } from '../utils/validation'
+
+// Fixed key (not doc.id, which is a fresh random UUID every time a document
+// is created) so a page reload can find and restore the last working doc.
+const AUTOSAVE_KEY = 'legislation-editor-autosave'
+
+function restoreAutosavedDoc(): LegislationDoc | null {
+  try {
+    const raw = localStorage.getItem(AUTOSAVE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    return isLegislationDoc(parsed) ? parsed : null
+  } catch {
+    return null
+  }
+}
 
 type Action =
   | { type: 'ADD_BLOCK'; blockType: BlockType; afterId?: string }
@@ -112,19 +127,21 @@ function reducer(doc: LegislationDoc, action: Action): LegislationDoc {
 }
 
 export function useLegislation() {
-  const [doc, dispatch] = useReducer(reducer, undefined, () => createEmptyDoc())
+  const [doc, dispatch] = useReducer(reducer, undefined, () => restoreAutosavedDoc() ?? createEmptyDoc())
   const numbers = useMemo(() => computeNumbers(doc.blocks), [doc.blocks])
   const errors = useMemo(() => validate(doc.blocks), [doc.blocks])
 
+  // Debounced (not a fixed interval) so a change is safe within ~1s, not up
+  // to 30s of typing lost if the tab is closed right after an edit.
   useEffect(() => {
-    const interval = setInterval(() => {
-      localStorage.setItem(doc.id, JSON.stringify(doc))
-    }, 30000)
-    return () => clearInterval(interval)
+    const timeout = setTimeout(() => {
+      localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(doc))
+    }, 1000)
+    return () => clearTimeout(timeout)
   }, [doc])
 
-  // Autosave only ever writes — there is no restore-on-load in Phase 1, so a
-  // refresh/close silently discards any unsaved work. Warn before that happens.
+  // Autosave is debounced by 1s, so a refresh/close in that window can still
+  // lose the very latest keystrokes even though restore-on-load now works.
   const docRef = useRef(doc)
   docRef.current = doc
   useEffect(() => {

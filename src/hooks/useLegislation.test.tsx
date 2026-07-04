@@ -1,6 +1,8 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { act, renderHook } from '@testing-library/react'
 import { useLegislation } from './useLegislation'
+
+const AUTOSAVE_KEY = 'legislation-editor-autosave'
 
 describe('useLegislation reducer', () => {
   it('ADD_BLOCK appends at the end by default', () => {
@@ -104,5 +106,53 @@ describe('useLegislation reducer', () => {
       expect(result.current.doc.blocks).toEqual([])
       expect(result.current.doc.docType).toBe(docType)
     }
+  })
+})
+
+describe('autosave restore-on-load', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('restores a previously autosaved document on mount', () => {
+    const saved = {
+      id: 'restored-id',
+      docType: 'regulation' as const,
+      title: 'מסמך שמור',
+      year: 'x',
+      blocks: [],
+      createdAt: 'a',
+      updatedAt: 'b',
+    }
+    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(saved))
+    const { result } = renderHook(() => useLegislation())
+    expect(result.current.doc).toEqual(saved)
+  })
+
+  it('falls back to a fresh document when the saved value is corrupted', () => {
+    localStorage.setItem(AUTOSAVE_KEY, '{ not valid json')
+    const { result } = renderHook(() => useLegislation())
+    expect(result.current.doc.title).toBe('')
+    expect(result.current.doc.blocks.length).toBeGreaterThan(0)
+  })
+
+  it('falls back to a fresh document when the saved value has the wrong shape', () => {
+    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ hello: 'world' }))
+    const { result } = renderHook(() => useLegislation())
+    expect(result.current.doc.title).toBe('')
+  })
+
+  it('writes changes to the fixed autosave key after the debounce window', () => {
+    const { result } = renderHook(() => useLegislation())
+    act(() => result.current.dispatch({ type: 'SET_META', changes: { title: 'שינוי' } }))
+    act(() => {
+      vi.advanceTimersByTime(1000)
+    })
+    const saved = JSON.parse(localStorage.getItem(AUTOSAVE_KEY)!)
+    expect(saved.title).toBe('שינוי')
   })
 })

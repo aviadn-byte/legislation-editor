@@ -19,16 +19,14 @@ export function AddBlockBar({ lastBlock, onAdd, compact = false }: AddBlockBarPr
 
   if (compact && !expanded) {
     return (
-      <div className="flex justify-center py-0.5">
-        <button
-          type="button"
-          onClick={() => setExpanded(true)}
-          aria-label="הוסף בלוק בנקודה זו"
-          className="rounded px-2 text-xs text-gray-300 hover:bg-gray-100 hover:text-blue-600"
-        >
-          + הוסף כאן
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={() => setExpanded(true)}
+        aria-label="הוסף סעיף קטן, פסקה, הגדרה או בלוק אחר כאן"
+        className="w-full rounded border border-dashed border-gray-300 py-1 text-sm font-medium text-gray-500 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
+      >
+        + הוסף כאן
+      </button>
     )
   }
 

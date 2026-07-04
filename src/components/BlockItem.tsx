@@ -1,5 +1,6 @@
 import type { Block, BlockType } from '../types/legislation'
 import type { ValidationError } from '../utils/validation'
+import { AddBlockBar } from './AddBlockBar'
 
 const BLOCK_LABELS: Record<BlockType, string> = {
   chapter: 'פרק',
@@ -20,6 +21,7 @@ export interface BlockItemProps {
   onDelete: () => void
   onMoveUp: () => void
   onMoveDown: () => void
+  onInsertAfter: (blockType: BlockType) => void
 }
 
 export function BlockItem({
@@ -32,6 +34,7 @@ export function BlockItem({
   onDelete,
   onMoveUp,
   onMoveDown,
+  onInsertAfter,
 }: BlockItemProps) {
   const severity = errors.some((e) => e.severity === 'error')
     ? 'error'
@@ -105,6 +108,10 @@ export function BlockItem({
           ))}
         </ul>
       )}
+
+      <div className="-mx-3 -mb-3 border-t border-gray-100 px-3 pt-1.5 pb-1.5">
+        <AddBlockBar compact lastBlock={block} onAdd={onInsertAfter} />
+      </div>
     </div>
   )
 }

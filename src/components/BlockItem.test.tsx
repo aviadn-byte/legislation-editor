@@ -14,6 +14,7 @@ function baseProps(block: Block, overrides: Partial<React.ComponentProps<typeof 
     onDelete: vi.fn(),
     onMoveUp: vi.fn(),
     onMoveDown: vi.fn(),
+    onInsertAfter: vi.fn(),
     ...overrides,
   }
 }
@@ -96,5 +97,15 @@ describe('BlockItem', () => {
     render(<BlockItem {...baseProps(block)} />)
     expect(screen.getByLabelText('הזז למעלה')).toBeInTheDocument()
     expect(screen.getByLabelText('הזז למטה')).toBeInTheDocument()
+  })
+
+  it('includes an insert-after control inside its own card', async () => {
+    const user = userEvent.setup()
+    const onInsertAfter = vi.fn()
+    const block: Block = { id: '1', type: 'section', marginalHeading: 'x', content: '' }
+    render(<BlockItem {...baseProps(block, { onInsertAfter })} />)
+    await user.click(screen.getByText('+ הוסף כאן'))
+    await user.click(screen.getByText('+ סעיף קטן'))
+    expect(onInsertAfter).toHaveBeenCalledWith('subsection')
   })
 })
